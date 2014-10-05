@@ -43,7 +43,7 @@ def findObject(frame,cnt):
     #x,y,w,h = cv2.boundingRect(cnt)
     #cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
     
-    return [cx,cy]
+    return [cx,cy,area]
 
 def findLine(frame,cnt):
     rows,cols = frame.shape[:2]
@@ -140,7 +140,7 @@ def frameProcessing():
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
     xyLocation[0]=tracking(ballTV,"object",2)
-    xyLocation[1]=tracking(fieldTV,"area",1)
+    #xyLocation[1]=tracking(fieldTV,"area",1)
     #xyLocation[2]=tracking(goalTV,"object")
     #xyLocation[3]=tracking(blackTV,"line")
     #xyLocation[4]=tracking(whiteTV,"line")
