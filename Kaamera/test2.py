@@ -15,7 +15,7 @@ def pixelfind(x,y,color):
                 frame[y-j][x-i]=color
     return value
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 rectcolor = [0,0,255]
 while(True):

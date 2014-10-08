@@ -23,8 +23,9 @@ def findmotor(ID):
 
 
 
-#motor8port=findmotor(7)
-#print motor8port
+motor8port=findmotor(7)
+print motor8port
+
 a="<s:>"
 ser = serial.Serial("COM8",115200,timeout=1)
 print ser.name

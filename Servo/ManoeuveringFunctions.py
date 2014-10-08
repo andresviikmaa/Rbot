@@ -1,7 +1,7 @@
 import serial
 import math
 import time
-servoID1,servoID2,servoID3=0,0,0 #servo ID numbers
+#servoID1,servoID2,servoID3=0,0,0 #servo ID numbers
 deg1,deg2,deg3=0,0,0 #rotor positions on the machine
 maxrotorvalue=0; #max speed the rotor can achieve
 COMerror=False #in case a rotor COM is not found
@@ -15,18 +15,24 @@ def readMove(inputVal,inputString):
     if int(s)<inputVal/2:
         GlobalStop=True
 
-def move(speed,direction,rotate,rspeed):#speed is movespeed, rspeed is rotational speed, rotate signifies the direction of rotation
-    tspeed=speed+rspeed
+def move(speed,direction,rspeed):#speed is movespeed, rspeed is rotational speed, rotate signifies the direction of rotation
+    tspeed=speed+abs(rspeed)
     if tspeed>maxrotorvalue:  #if the total speed is over the allowed max, it will be distributed acordingly
         spd=speed/tspeed*maxrotorvalue
         rspd=rspeed/tspeed*maxrotorvalue
     else:
         spd=speed
         rspd=rspeed
-
-    speed1=spd*math.sin(direction+deg1)+rotate*rspd
-    speed2=spd*math.sin(direction+deg2)+rotate*rspd
-    speed3=spd*math.sin(direction+deg3)+rotate*rspd
+        
+    if GlobalStop:
+        speed1=0
+        speed2=0
+        speed3=0
+    else:
+        speed1=spd*math.sin(direction+deg1)+rspd
+        speed2=spd*math.sin(direction+deg2)+rspd
+        speed3=spd*math.sin(direction+deg3)+rspd
+    
     ser1.write(speed1)#each motor has it's own directional speed and in case of rotation it's rotational speed
     ser2.write(speed2)
     ser3.write(speed3)
@@ -78,7 +84,7 @@ def closeConnections(): #ends the session
     ser3.close()
     print "ser1 =",ser1.isOpen(),",ser2 =",ser2.isOpen(),",ser3 =",ser3.isOpen()
 
-def setup(): #defines the COM ports and sets up the connections
+def setup(servoID1,servoID2,servoID3): #defines the COM ports and sets up the connections
     COM1=findMotor(servoID1)
     COM2=findMotor(servoID2)
     COM3=findMotor(servoID3)

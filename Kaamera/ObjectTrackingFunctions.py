@@ -139,12 +139,12 @@ def frameProcessing():
     frame = cv2.blur(frame,(3,3))
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
-    xyLocation[0]=tracking(ballTV,"object",2)
+    xyLocation[0]=tracking(ballTV,"object",1)
     #xyLocation[1]=tracking(fieldTV,"area",1)
     #xyLocation[2]=tracking(goalTV,"object")
     #xyLocation[3]=tracking(blackTV,"line")
     #xyLocation[4]=tracking(whiteTV,"line")
-    print xyLocation
+    #print xyLocation
 
 
     
@@ -155,11 +155,17 @@ def frameProcessing():
     
     cv2.imshow('frame', frame)
 
-beginCapture()
-while(True):
-    frameProcessing()
-    
-    if cv2.waitKey(1) >= 0:
-            cap.release()
-            cv2.destroyAllWindows()
-            break
+
+
+def initCam():
+    beginCapture()
+    while(True):
+        frameProcessing()
+        
+        if cv2.waitKey(1) >= 0:
+                cap.release()
+                cv2.destroyAllWindows()
+                break
+#initCam()
+
+
