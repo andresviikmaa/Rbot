@@ -5,6 +5,7 @@ import Tkinter as tk
 from threading import Thread,Event
 from multiprocessing import Array
 from ctypes import c_int32
+import Kaamera.lembalemba as lmb
 #primaryWrite=True
 class CaptureController(tk.Frame):
 
@@ -55,7 +56,7 @@ class CaptureController(tk.Frame):
         #f=open("save.txt","r+")
         if self.atLine==0:
             f=open("save.txt","w")
-        elif self.atLine<5:
+        elif self.atLine<=5:
             f=open("save.txt","r")
             for line in f:
                 readlines.append(line)
@@ -63,7 +64,7 @@ class CaptureController(tk.Frame):
             f=open("save.txt","w")
             for line in readlines:
                 f.write(line)
-        if self.atLine>=5:
+        if self.atLine>5:
             print "All values already saved!"
         else:
             print self.ar[:]
@@ -75,13 +76,15 @@ class CaptureController(tk.Frame):
         if self.atLine==1:
             print "Input area threshold."
         elif self.atLine==2:
-            print "Input goal threshold."
+            print "Input first goal threshold."
         elif self.atLine==3:
-            print "Input black line threshold."
+            print "Input second goal threshold."
         elif self.atLine==4:
+            print "Input black line threshold."
+        elif self.atLine==5:
             print "Input white line threshold."
     def emptySave(self):
-        while self.atLine<5:
+        while self.atLine<=5:
             readlines=[]
             f=open("save.txt","r")
             for line in f:
@@ -107,6 +110,7 @@ class CaptureController(tk.Frame):
 # This function simply loops over and over, printing the contents of the array to screen
 def video_capture(ar,quit):
     cap = cv2.VideoCapture(0)
+    lmb.set_cam_settings_from_cli()
     # This while loop would be replaced by the while loop in your original code
     while not quit.is_set():
         #print ar[0]

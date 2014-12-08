@@ -1,25 +1,59 @@
 import serial
 import math
 import time
+import re
 #servoID1,servoID2,servoID3=0,0,0 #servo ID numbers
-deg1,deg2,deg3=0,0,0 #rotor positions on the machine
-maxrotorvalue=0; #max speed the rotor can achieve
+deg1,deg2,deg3=4.2,3.1,1 #rotor positions on the machine
+deg1,deg2,deg3=4.2,0,2.1 #rotor positions on the machine
+maxrotorvalue=19 #max speed the rotor can achieve
 COMerror=False #in case a rotor COM is not found
 
 GlobalStop=False
-removeString="<s:>"
+removeString="<s:>\n"
 
+Stallcounter=0
+
+outputless=False
+StallReverse=0
+
+Servocounter=1
+
+def readLED():
+    try:
+        ser2.write("gb\n")
+
+        read=ser2.read(6)
+        #return read
+        if "1" in read:
+            return True
+        return False
+    except:
+        return False
+    
 def readMove(inputVal,inputString):
-    for i in removeString:
-        s =s.replace(i,"")
-    if int(s)<inputVal/2:
-        GlobalStop=True
+    global StallReverse
+    inputString=re.search("<stall:(.*)>",inputString)
+    if inputString!=None:
+        #print inputString.group(1),inputVal
+        if inputString.group(1)=="1":
+            StallReverse=20
+            print "stall"
+        if inputString.group(1)=="2":
+            GlobalStop=True
+            #GlobalStop=False
+        if not outputless:
+            #print inputString.group(1)
+            pass
 
-def move(speed,direction,rspeed):#speed is movespeed, rspeed is rotational speed, rotate signifies the direction of rotation
-    tspeed=speed+abs(rspeed)
+def move(Values):#speed is movespeed, rspeed is rotational speed, rotate signifies the direction of rotation
+    global Stallcounter,StallReverse,Servocounter
+    [speed,direction,rspeed]=Values
+    #speed=0
+    direction=math.radians(direction)
+    tspeed=abs(speed)+abs(rspeed)
     if tspeed>maxrotorvalue:  #if the total speed is over the allowed max, it will be distributed acordingly
-        spd=speed/tspeed*maxrotorvalue
-        rspd=rspeed/tspeed*maxrotorvalue
+        spd=speed/float(tspeed)*maxrotorvalue
+        rspd=rspeed/float(tspeed)*maxrotorvalue
     else:
         spd=speed
         rspd=rspeed
@@ -29,31 +63,74 @@ def move(speed,direction,rspeed):#speed is movespeed, rspeed is rotational speed
         speed2=0
         speed3=0
     else:
-        speed1=spd*math.sin(direction+deg1)+rspd
-        speed2=spd*math.sin(direction+deg2)+rspd
-        speed3=spd*math.sin(direction+deg3)+rspd
-    
-    ser1.write(speed1)#each motor has it's own directional speed and in case of rotation it's rotational speed
-    ser2.write(speed2)
-    ser3.write(speed3)
+        speed1=int(spd*math.sin(direction+deg1)+rspd)
+        speed2=int(spd*math.sin(direction+deg2)+rspd)
+        speed3=int(spd*math.sin(direction+deg3)+rspd)
 
-    s1 = ser1.read(5)
-    readMove(speed1,s1)
-    s2 = ser2.read(5)
-    readMove(speed2,s2)
-    s3 = ser3.read(5)
-    readMove(speed3,s3)
+    if StallReverse>0:
+        speed1=-speed1
+        speed2=-speed2
+        speed3=-speed3
+        StallReverse-=1
+    #if not outputless:  
+    #    print speed1,speed2,speed3
+
+    
+    if Servocounter==1:
+        try:
+            ser1.write("sd"+str(speed1)+"\n")#each motor has it's own directional speed and in case of rotation it's rotational speed
+        except:
+            print "ser1 input error"
+        #ser1.write("s\n")
+    if Servocounter==2:
+        try:
+            ser2.write("sd"+str(speed2)+"\n")
+        except:
+            print "ser2 input error"
+        #ser2.write("s\n")
+    if Servocounter==3:
+        try:
+            ser3.write("sd"+str(speed3)+"\n")
+        except:
+            print "ser3 input error"
+        #ser3.write("s\n")
+        Servocounter=0
+    Servocounter+=1
+
+    #print(Stallcounter)
+        
+##    try:
+##        if Stallcounter==4:
+##            s1 = ser1.read(10)
+##            readMove(speed1,s1)
+##        elif Stallcounter==8:
+##            s2 = ser2.read(10)
+##            readMove(speed2,s2)
+##        elif Stallcounter>11:
+##            s3 = ser3.read(10)
+##            readMove(speed3,s3)
+##            Stallcounter=0
+##    except:
+##        print "servo read error"
+##    
+##    Stallcounter+=1
+    #Stallcounter=4
+
+    #print s1,s2,s3
 
     #time.sleep(0.1) #in case the write output is too fast for the rotors
 
 def findMotor(ID): #locates the requested rotor in the COM ports
-    ports = ['COM' + str(i + 1) for i in range(256)]
+    ports = ['/dev/ttyACM' + str(i) for i in range(256)]
     result = []
     for port in ports:
         try:
-            ser = serial.Serial(port,115200,timeout=1)
+            ser = serial.Serial(port,115200,timeout=0.1)
             ser.write("?\n")
-            text = ser.read(7)
+            time.sleep(0.1)
+            ser.write("gs0\n")
+            time.sleep(0.1)
+            text = ser.read(10)
             print port,",response:",text
             if "<id:"+str(ID)+">" in text:
                 print "found id: "+str(ID)
@@ -72,15 +149,24 @@ def openConnections(COM1,COM2,COM3): #starts communications with the rotors
     ser1 = serial.Serial(COM1,115200,timeout=1)
     ser2 = serial.Serial(COM2,115200,timeout=1)
     ser3 = serial.Serial(COM3,115200,timeout=1)
-    ser1.write("dr0\n") #sets up the rotor directions
-    ser2.write("dr0\n")
-    ser3.write("dr0\n")
+    ser1.write("dr1\n") #sets up the rotor directions
+    ser2.write("dr1\n")
+    ser3.write("dr1\n")
+    #ser1.write("gs1\n")
+    #ser2.write("gs1\n")
+    #ser3.write("gs1\n")
     print "ser1 =",ser1.isOpen(),",ser2 =",ser2.isOpen(),",ser3 =",ser3.isOpen()
 
 def closeConnections(): #ends the session
     print "Closing connections."
+    ser1.write("gs0\n")
+    ser2.write("gs0\n")
+    ser3.write("gs0\n")
+    time.sleep(0.1)
     ser1.close()
+    time.sleep(0.1)
     ser2.close()
+    time.sleep(0.1)
     ser3.close()
     print "ser1 =",ser1.isOpen(),",ser2 =",ser2.isOpen(),",ser3 =",ser3.isOpen()
 
@@ -92,3 +178,4 @@ def setup(servoID1,servoID2,servoID3): #defines the COM ports and sets up the co
         print "Opening connections aborted."
     else:
         openConnections(COM1,COM2,COM3)
+

@@ -1,55 +1,30 @@
 import cv2
 import numpy as np
+import lembalemba as lmb
 
+lmb.set_cam_settings_from_cli()
 cap = cv2.VideoCapture(0)
-#cap2 = cv2.VideoCapture(1)
+#lmb.set_cam_settings_from_cli()
+ret, frame = cap.read()
+cv2.imshow('spycam',frame)
+lmb.set_cam_settings_from_cli2()
 
-lower_values = np.array((79,98,101))
-upper_values = np.array((101,191,158))
-
+fieldAreaLimit=[310,100,330,450]
 while(True):
         ret, frame = cap.read()
-
-        frame = cv2.blur(frame,(3,3))
-        hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_values, upper_values) #thresholding using hsv values
-
-        kernel = np.ones((5,5),np.uint8) #erosion and dilation size
-
-        #erosion = cv2.erode(mask,kernel,iterations = 1)
-        #dilation = cv2.dilate(erosion,kernel,iterations = 1)
-
-        opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel) #opening erodes and then dialates the image
-
-        fast = cv2.FastFeatureDetector()# Initiate FAST object with default values
-        # find and draw the keypoints
-        kp = fast.detect(opening,None)
-        objects = cv2.drawKeypoints(opening, kp, color=(255,0,0))
-
-        '''
-        surf = cv2.SURF(80000) #using surf to detect the object
-        surf.upright = True
-        kp, des = surf.detectAndCompute(opening,None)
-        print(des.shape)
-        objects = cv2.drawKeypoints(frame,kp,None,(255,0,0),4)
-        if kp != []:
-                kp.sort()
-                [x,y]=kp[0].pt
-                print([x,y])
-                cv2.circle(objects,(int(x),int(y)),10,(255,0,0),-1)
-        '''
-
-        #res = cv2.bitwise_and(frame,frame, mask= mask)
-
-        #cv2.imshow('mask',mask)
-        #cv2.imshow('opening',opening)
-        cv2.imshow('objects',objects)
-
-        #cv2.imshow('res',res)
-        #ret, frame2 = cap2.read()
-        #cv2.imshow('frame', frame)
-        #cv2.imshow('frame2', frame2)
+        rows,cols = frame.shape[:2]
+        print cols,rows
+        cv2.line(frame,(330,rows-1),(330,0),(0,255,0),2)
+        cv2.line(frame,(310,rows-1),(310,0),(0,255,0),2)
+        
+        cv2.line(frame,(cols-1,250),(0,250),(0,255,0),2)
+        cv2.line(frame,(cols-1,400),(0,400),(0,255,0),2)
+        cv2.cv.fromarray(frame)
+        line = cv2.cv.InitLineIterator(cv2.cv.fromarray(frame), (20, 20), (40, 40))
+        cv2.rectangle(frame,(fieldAreaLimit[0],fieldAreaLimit[1]),(fieldAreaLimit[2],fieldAreaLimit[3]),(255,0,255),2)
+        cv2.imshow('spycam',frame)
 
         if cv2.waitKey(1) >= 0:
                 break
 
+cap.release()

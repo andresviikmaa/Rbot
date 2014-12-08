@@ -21,6 +21,8 @@ import time
 import ManoeuveringFunctions as MF
 
 
+#import Visualizationofmovement as Vmove
+
 class Example(Tkinter.Frame):
     #Valueholder=[0,0,0,0]
     NSLIDERS = 3
@@ -82,12 +84,28 @@ class Example(Tkinter.Frame):
          
 def output_loop(Valueholder,quit):
     try:
-        MF.setup(1,2,3)
+        MF.findMotor(8)
+        MF.setup(61,62,63)
+        MF.maxrotorvalue=60
+        print "Setup sussess."
+        
     except:
-        print "Setup failed"
-    while not quit.is_set():
-        #print [Valueholder[0],Valueholder[1],Valueholder[2]]
-        time.sleep(0.01)
+        MF.closeConnections()
+        print "Setup failed."
+    #import Visualizationofmovement as Vmove
+    #MF.move(Valueholder[0],Valueholder[1],Valueholder[2])
+    #try:
+    if True:
+        while not quit.is_set():
+            #Vmove.move(Valueholder)
+            MF.move(Valueholder)
+
+            
+            #print [Valueholder[0],Valueholder[1],Valueholder[2]]
+            #time.sleep(0.1)
+    #except:
+    #    print "Sending error, session aborted."
+    MF.closeConnections()
 def main():
     root = Tkinter.Tk()
     ex = Example(root)

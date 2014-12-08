@@ -9,7 +9,7 @@ def findmotor(ID):
         try:
             ser = serial.Serial(port,115200,timeout=1)
             ser.write("?\n")
-            text = ser.read(7)
+            text = ser.read(10)
             print port,",response:",text
             if "<id:"+str(ID)+">" in text:
                 print "found id: "+str(ID)
@@ -23,20 +23,20 @@ def findmotor(ID):
 
 
 
-motor8port=findmotor(7)
+motor8port=findmotor(255)
 print motor8port
-
-a="<s:>"
-ser = serial.Serial("COM8",115200,timeout=1)
-print ser.name
-ser.write("?\n")
-s = ser.read(7)
-print s
-ser.write("sd5\n")
-ser.write("s\n")
-s = ser.read(5)
-
-for i in a:
-    s =s.replace(i,"")
-print int(s)
-ser.close()
+##
+##a="<s:>"
+##ser = serial.Serial("COM8",115200,timeout=1)
+##print ser.name
+##ser.write("?\n")
+##s = ser.read(7)
+##print s
+##ser.write("sd5\n")
+##ser.write("s\n")
+##s = ser.read(5)
+##
+##for i in a:
+##    s =s.replace(i,"")
+##print int(s)
+##ser.close()
